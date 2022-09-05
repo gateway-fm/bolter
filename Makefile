@@ -1,4 +1,4 @@
-APP:=warp
+APP:=bolter
 APP_ENTRY_POINT:=./cmd/fire.go
 
 fire:

@@ -5,9 +5,11 @@ go 1.19
 require (
 	github.com/Misnaged/annales v0.0.1
 	github.com/gateway-fm/scriptorium v0.0.14
+	github.com/goccy/go-json v0.9.11
 	github.com/hashicorp/hcl/v2 v2.14.0
 	github.com/spf13/cobra v1.5.0
 	github.com/tsenart/vegeta/v12 v12.8.4
+	go.uber.org/zap v1.21.0
 )
 
 require (
@@ -35,7 +37,6 @@ require (
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
-	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2 // indirect
 	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
 	golang.org/x/text v0.3.7 // indirect

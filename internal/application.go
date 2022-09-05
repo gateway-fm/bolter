@@ -1,17 +1,21 @@
 package internal
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gateway-fm/scriptorium/logger"
-	"go.uber.org/zap"
 	"os"
 	"sync"
 	"time"
 
+	"go.uber.org/zap"
+
+	"github.com/goccy/go-json"
+
 	"github.com/hashicorp/hcl/v2/hclsimple"
+
 	vegeta "github.com/tsenart/vegeta/v12/lib"
+
+	"github.com/gateway-fm/scriptorium/logger"
 
 	"bolter/config"
 	"bolter/internal/models"

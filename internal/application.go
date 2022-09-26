@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"sync"
 	"time"
@@ -50,12 +51,11 @@ func LoadBolter() error {
 	}
 
 	attacker := bolt.PrepareAttacker()
-
 	var metrics vegeta.Metrics
 	var result *models.ResultBody
 	var wg sync.WaitGroup
 
-	for res := range attacker.Attack(*targeter, rate, *duration, "") {
+	for res := range attacker.Attack(targeter, rate, *duration, "") {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -108,11 +108,12 @@ func (b *Bolter) PrepareAttacker() *vegeta.Attacker {
 }
 
 // PrepareTargeter loading new vegeta.Targeter
-func (b *Bolter) PrepareTargeter() (*vegeta.Targeter, error) {
+func (b *Bolter) PrepareTargeter() (vegeta.Targeter, error) {
 	cfg, err := b.DecodeConfig()
 	if err != nil {
 		return nil, fmt.Errorf("decoding failed: %w", err)
 	}
+
 	body, err := b.NewBody()
 	if err != nil {
 		return nil, fmt.Errorf("failed getting new body: %w", err)
@@ -121,11 +122,11 @@ func (b *Bolter) PrepareTargeter() (*vegeta.Targeter, error) {
 	b.Vegeta.Target.Body = body
 	if !cfg.Vegeta.IsPublic {
 		auth := cfg.Vegeta.Header.Auth + " " + cfg.Vegeta.Header.Bearer
-		header := b.Vegeta.Target.Header
-		header.Add("Authorization", auth)
+		b.Vegeta.Target.Header = make(http.Header)
+		b.Vegeta.Target.Header.Add("Authorization", auth)
 	}
 	b.Vegeta.Targeter = vegeta.NewStaticTargeter(b.Vegeta.Target)
-	return &b.Vegeta.Targeter, nil
+	return b.Vegeta.Targeter, nil
 }
 
 // PrepareRate loading new vegeta.Rate

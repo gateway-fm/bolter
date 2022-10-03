@@ -10,11 +10,11 @@ logger{
 vegeta {
   url = "" ## e.g. "http://localhost:8181/"
   method = "POST"
-  is_public = true ## Does the auth header needed?
+  is_public = false ## Does the auth header needed?
   rate = 10
   duration = 1 ## must be int!!! no "1s" "time.Second" etc
   header {
-    auth = "" ## Auth type if it's needed. Now only "bearer" is availiable
+    auth = "Bearer" ## Auth type if it's needed. Now only "Bearer" is availiable
     bear = "" ## bearer token
   }
 }
@@ -22,9 +22,9 @@ vegeta {
 ## example of "eth_blockNumber" request
 request {
   jsonrpc = "2.0"
-  method = "eth_blockNumber"
-  params = []
-  id = "0x1234"
+  method = "eth_getBlockByNumber"
+  params = ["latest", "true"]
+  id = "1"
 }
 ##
 

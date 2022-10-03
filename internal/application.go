@@ -94,6 +94,11 @@ func (b *Bolter) NewBody() ([]byte, error) {
 	b.Request.Id = cfg.Request.Id
 	b.Request.Jsonrpc = cfg.Request.Jsonrpc
 	b.Request.Params = cfg.Request.Parameters
+	var paap []any
+	if cfg.Request.Parameters[1] == "true" {
+		paap = append(paap, cfg.Request.Parameters[0], true)
+		b.Request.Params = paap
+	}
 	body, err := json.Marshal(b.Request)
 	if err != nil {
 		return nil, fmt.Errorf("marshalling failed: %w", err)
@@ -125,6 +130,7 @@ func (b *Bolter) PrepareTargeter() (vegeta.Targeter, error) {
 		b.Vegeta.Target.Header = make(http.Header)
 		b.Vegeta.Target.Header.Add("Authorization", auth)
 	}
+	fmt.Println("params", string(b.Vegeta.Target.Body))
 	b.Vegeta.Targeter = vegeta.NewStaticTargeter(b.Vegeta.Target)
 	return b.Vegeta.Targeter, nil
 }

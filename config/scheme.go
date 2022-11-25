@@ -1,15 +1,20 @@
 package config
 
 type BolterCfg struct {
-	Logger  *Logger  `hcl:"logger,block"`
-	Request *Request `hcl:"request,block"`
-	Vegeta  *Vegeta  `hcl:"vegeta,block"`
+	Logger   *Logger     `hcl:"logger,block"`
+	Requests []*Requests `hcl:"requests,block"`
+	Vegeta   *Vegeta     `hcl:"vegeta,block"`
 }
 
 type Logger struct {
 	LoggerType int    `hcl:"logger_type"`
 	FileName   string `hcl:"file_name"`
 }
+type Requests struct {
+	Type    string   `hcl:"type,label"`
+	Request *Request `hcl:"request,block"`
+}
+
 type Request struct {
 	Jsonrpc    string   `hcl:"jsonrpc"`
 	Method     string   `hcl:"method"`

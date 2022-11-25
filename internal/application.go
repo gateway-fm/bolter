@@ -23,7 +23,7 @@ import (
 )
 
 type Bolter struct {
-	Request   models.JsonBody
+	Request   []models.JsonBody
 	Vegeta    models.Vegeta
 	Logger    models.Logger
 	BolterCfg config.BolterCfg
@@ -49,33 +49,34 @@ func LoadBolter() error {
 		return fmt.Errorf("PrepareDuration failed %w", err)
 	}
 
-	targeter, err := bolt.PrepareTargeter()
-	if err != nil {
-		return fmt.Errorf("PrepareRate failed %w", err)
-	}
-
 	attacker := bolt.PrepareAttacker()
 	var metrics vegeta.Metrics
-	var result *models.ResultBody
 	var wg sync.WaitGroup
-
-	for res := range attacker.Attack(targeter, rate, *duration, "") {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			metrics.Add(res)
-			err = json.Unmarshal(res.Body, &result)
-			if err != nil {
-				logger.Log().Error("An error occurred", zap.Error(err))
-			}
-			err = bolt.PrepareLogger(result.Result, file)
-			if err != nil {
-				logger.Log().Error("An error occurred", zap.Error(err))
-			}
-		}()
-		wg.Wait()
+	trgts, err := bolt.PrepareTargeter()
+	if err != nil {
+		return fmt.Errorf("PrepareTargeter failed %w", err)
 	}
+	//result := make([]*models.ResultBody, len(trgts)
 
+	var result *models.ResultBody
+	for i := range trgts {
+		wg.Add(1)
+		for res := range attacker.Attack(trgts[i], rate, *duration, "") {
+			go func() {
+				defer wg.Done()
+				metrics.Add(res)
+				err = json.Unmarshal(res.Body, &result)
+				if err != nil {
+					logger.Log().Error("An error occurred", zap.Error(err))
+				}
+				err = bolt.PrepareLogger(result.Result, file)
+				if err != nil {
+					logger.Log().Error("An error occurred", zap.Error(err))
+				}
+			}()
+			wg.Wait()
+		}
+	}
 	metrics.Close()
 
 	fmt.Printf("99th percentile: %s\n", metrics.Latencies.P99)
@@ -96,12 +97,21 @@ func (b *Bolter) initCfg() error {
 	}
 	return nil
 }
-func (b *Bolter) NewBody() ([]byte, error) {
-	b.Request.Method = b.BolterCfg.Request.Method
-	b.Request.Id = b.BolterCfg.Request.Id
-	b.Request.Jsonrpc = b.BolterCfg.Request.Jsonrpc
-	b.Request.Params = b.BolterCfg.Request.Parameters
-	body, err := json.Marshal(b.Request)
+
+func (b *Bolter) BuildRequests() []models.JsonBody {
+	confReqs := b.BolterCfg.Requests
+	b.Request = make([]models.JsonBody, len(confReqs))
+	for i := range confReqs {
+		b.Request[i].Method = confReqs[i].Request.Method
+		b.Request[i].Id = confReqs[i].Request.Id
+		b.Request[i].Jsonrpc = confReqs[i].Request.Jsonrpc
+		b.Request[i].Params = confReqs[i].Request.Parameters
+	}
+	return b.Request
+}
+func (b *Bolter) NewBodies(i int) ([]byte, error) {
+	reqs := b.BuildRequests()
+	body, err := json.Marshal(reqs[i])
 	if err != nil {
 		return nil, fmt.Errorf("marshalling failed: %w", err)
 	}
@@ -114,22 +124,44 @@ func (b *Bolter) PrepareAttacker() *vegeta.Attacker {
 	return b.Vegeta.Attacker
 }
 
-// PrepareTargeter loading new vegeta.Targeter
-func (b *Bolter) PrepareTargeter() (vegeta.Targeter, error) {
+func (b *Bolter) PrepareTarget() ([]vegeta.Target, error) {
+	le := len(b.BolterCfg.Requests)
+	var err error
+	trg := make([]vegeta.Target, le)
+	for i := range trg {
+		b.Vegeta.Target.Body, err = b.NewBodies(i)
+		if err != nil {
+			return nil, fmt.Errorf("failed while NewBodies: %w", err)
+		}
+		b.Vegeta.Target.URL, b.Vegeta.Target.Method = b.BolterCfg.Vegeta.Url, b.BolterCfg.Vegeta.Method
+		if !b.BolterCfg.Vegeta.IsPublic {
+			auth := b.BolterCfg.Vegeta.Header.Auth + " " + b.BolterCfg.Vegeta.Header.Bearer
+			b.Vegeta.Target.Header = make(http.Header)
+			b.Vegeta.Target.Header.Add("Authorization", auth)
+		}
+		trg = append(trg, b.Vegeta.Target)
 
-	body, err := b.NewBody()
+	}
+	trg = append(trg[le:le], trg[le:]...)
+
+	return trg, err
+}
+
+// PrepareTargeter loading new vegeta.Targeter
+func (b *Bolter) PrepareTargeter() ([]vegeta.Targeter, error) {
+	le := len(b.BolterCfg.Requests)
+	trgr := make([]vegeta.Targeter, le)
+	prep, err := b.PrepareTarget()
 	if err != nil {
-		return nil, fmt.Errorf("failed getting new body: %w", err)
+		return nil, fmt.Errorf("failed to prepare Target:%w", err)
 	}
-	b.Vegeta.Target.URL, b.Vegeta.Target.Method = b.BolterCfg.Vegeta.Url, b.BolterCfg.Vegeta.Method
-	b.Vegeta.Target.Body = body
-	if !b.BolterCfg.Vegeta.IsPublic {
-		auth := b.BolterCfg.Vegeta.Header.Auth + " " + b.BolterCfg.Vegeta.Header.Bearer
-		b.Vegeta.Target.Header = make(http.Header)
-		b.Vegeta.Target.Header.Add("Authorization", auth)
+	for i := range trgr {
+		b.Vegeta.Targeter = vegeta.NewStaticTargeter(prep[i])
+		trgr = append(trgr, b.Vegeta.Targeter)
 	}
-	b.Vegeta.Targeter = vegeta.NewStaticTargeter(b.Vegeta.Target)
-	return b.Vegeta.Targeter, nil
+	trgr = append(trgr[le:le], trgr[le:]...)
+
+	return trgr, nil
 }
 
 // PrepareRate loading new vegeta.Rate

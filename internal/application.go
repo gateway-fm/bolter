@@ -59,24 +59,25 @@ func LoadBolter() error {
 	//result := make([]*models.ResultBody, len(trgts)
 
 	var result *models.ResultBody
-	for i := range trgts {
-		for res := range attacker.Attack(trgts[i], rate, *duration, "") {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				metrics.Add(res)
-				err = json.Unmarshal(res.Body, &result)
-				if err != nil {
-					logger.Log().Error("An error occurred", zap.Error(err))
-				}
-				err = bolt.PrepareLogger(result.Result, file)
-				if err != nil {
-					logger.Log().Error("An error occurred", zap.Error(err))
-				}
-			}()
-			wg.Wait()
-		}
+	//for i := range trgts {
+	//	for res := range attacker.Attack(trgts[i], rate, *duration, "") {
+	for res := range attacker.Attack(trgts[0], rate, *duration, "") {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			metrics.Add(res)
+			err = json.Unmarshal(res.Body, &result)
+			if err != nil {
+				logger.Log().Error("An error occurred", zap.Error(err))
+			}
+			err = bolt.PrepareLogger(result.Result, file)
+			if err != nil {
+				logger.Log().Error("An error occurred", zap.Error(err))
+			}
+		}()
+		wg.Wait()
 	}
+	//}
 	metrics.Close()
 
 	fmt.Printf("99th percentile: %s\n", metrics.Latencies.P99)

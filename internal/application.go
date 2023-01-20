@@ -60,8 +60,8 @@ func LoadBolter() error {
 
 	var result *models.ResultBody
 	for i := range trgts {
-		wg.Add(1)
 		for res := range attacker.Attack(trgts[i], rate, *duration, "") {
+			wg.Add(1)
 			go func() {
 				defer wg.Done()
 				metrics.Add(res)

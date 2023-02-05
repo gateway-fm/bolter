@@ -5,34 +5,28 @@ logger{
   ## 2: logging using Zap logger
 
   logger_type = 0
+  log_enabled = true #set false if you don't need any outputs
   file_name = "serega.txt"
 }
 vegeta {
-  url = "http://localhost:10000" ## e.g. "http://localhost:8181/"
+  url = "http://127.0.0.1:10000/v4/ethereum/non-archival/mainnet" ## e.g. "http://localhost:8181/" MUST STARTS WITH "http://" !!!
   method = "POST"
   is_public = false ## Does the auth header needed?
-  rate = 1
-  duration = 1 ## must be int!!! no "1s" "time.Second" etc
+  rate = 500
+  duration = 2 ## must be int!!! no "1s" "time.Second" etc
   header {
-    auth = "" ## Auth type if it's needed. Now only (uppercase!) "Bearer" is availiable
-    bear = "" ## bearer token
+    auth = "Bearer" ## Auth type if it's needed. Now only (uppercase!) "Bearer" is availiable
+    bear = "97A9nbF2t6A6xjQVfbRqbhK_mzmls44K.DzOHSNH4APfexTlI" ## bearer token
   }
 }
 
-requests "eth_getBlockByHash" {
-  request {
-    jsonrpc = "2.0"
-    method  = "net_version"
-    params  = []
-    id      = "1"
-  }
-}
-requests "eth_getBlockByNumber"{
-  ## example of "eth_blockNumber" request
+requests "eth_gasPrice"{
+  ## example of "eth_gasPrice" request
   request  {
     jsonrpc = "2.0"
-    method = "eth_gasPrice"
-    params = []
+    method = "eth_getBlockByNumber"
+    params = ["latest", "true"]
     id = "0x1234"
+    hard_coded = true ## must be true for eth_getBlockByNumber ONLY!
   }
 }

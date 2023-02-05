@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -70,9 +71,11 @@ func LoadBolter() error {
 			if err != nil {
 				logger.Log().Error("An error occurred", zap.Error(err))
 			}
-			err = bolt.PrepareLogger(result.Result, file)
-			if err != nil {
-				logger.Log().Error("An error occurred", zap.Error(err))
+			if bolt.BolterCfg.Logger.LogEnabled {
+				err = bolt.PrepareLogger(result.Result, file)
+				if err != nil {
+					logger.Log().Error("An error occurred", zap.Error(err))
+				}
 			}
 		}()
 		wg.Wait()
@@ -106,12 +109,26 @@ func (b *Bolter) BuildRequests() []models.JsonBody {
 		b.Request[i].Method = confReqs[i].Request.Method
 		b.Request[i].Id = confReqs[i].Request.Id
 		b.Request[i].Jsonrpc = confReqs[i].Request.Jsonrpc
-		b.Request[i].Params = confReqs[i].Request.Parameters
+		confReqParams := confReqs[i].Request.Parameters
+		fmt.Printf("%v\n", b.Request[i].Params)
+		fmt.Printf("%v\n", confReqParams)
+		if confReqs[i].Request.HardCoded {
+			b.Request[i].Params = append(b.Request[i].Params, confReqParams[i], confReqParams[i+1])
+			if b.Request[i].Params[1] == "true" || b.Request[i].Params[1] == "false" {
+				boolPar, _ := strconv.ParseBool(b.Request[i].Params[1].(string))
+				b.Request[i].Params = append(b.Request[i].Params, boolPar)
+				b.Request[i].Params = append(b.Request[i].Params[:1], b.Request[i].Params[2:]...) //hardcoded for eth_getBlockByNumber where we have "latest, true
+
+			}
+		} else {
+			b.Request[i].Params = append(b.Request[i].Params, confReqParams)
+		}
 	}
 	return b.Request
 }
 func (b *Bolter) NewBodies(i int) ([]byte, error) {
 	reqs := b.BuildRequests()
+	fmt.Println(reqs)
 	body, err := json.Marshal(reqs[i])
 	if err != nil {
 		return nil, fmt.Errorf("marshalling failed: %w", err)

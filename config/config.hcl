@@ -9,14 +9,14 @@ logger{
   file_name = "serega.txt"
 }
 vegeta {
-  url = "http://127.0.0.1:10000/v4/ethereum/non-archival/mainnet" ## e.g. "http://localhost:8181/" MUST STARTS WITH "http://" !!!
+  url = "http://127.0.0.1:10000" ## e.g. "http://localhost:8181/" MUST STARTS WITH "http://" !!!
   method = "POST"
   is_public = false ## Does the auth header needed?
   rate = 500
   duration = 2 ## must be int!!! no "1s" "time.Second" etc
   header {
     auth = "Bearer" ## Auth type if it's needed. Now only (uppercase!) "Bearer" is availiable
-    bear = "97A9nbF2t6A6xjQVfbRqbhK_mzmls44K.DzOHSNH4APfexTlI" ## bearer token
+    bear = "" ## bearer token
   }
 }
 

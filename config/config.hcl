@@ -20,13 +20,13 @@ vegeta {
   }
 }
 
-requests "eth_gasPrice"{
+requests "eth_getBlockByNumber"{
   ## example of "eth_gasPrice" request
   request  {
     jsonrpc = "2.0"
     method = "eth_getBlockByNumber"
     params = ["latest", "true"]
     id = "0x1234"
-    hard_coded = true ## must be true for eth_getBlockByNumber ONLY!
+    hard_coded = true ## must be true ONLY for eth_getBlockByNumber !
   }
 }

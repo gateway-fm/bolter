@@ -10,7 +10,6 @@ require (
 	github.com/spf13/cobra v1.5.0
 	github.com/tsenart/vegeta/v12 v12.8.4
 	go.uber.org/zap v1.21.0
-	golang.org/x/exp v0.0.0-20230203172020-98cc5a0785f9
 )
 
 require (

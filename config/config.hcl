@@ -8,24 +8,31 @@ logger{
   file_name = "serega.txt"
 }
 vegeta {
-  url = "http://127.0.0.1:10000" ## e.g. "http://localhost:8181/" MUST STARTS WITH "http://" !!!
+  url = "http://localhost:10000" ## e.g. "http://localhost:8181/"
   method = "POST"
   is_public = false ## Does the auth header needed?
-  rate = 500
-  duration = 2 ## must be int!!! no "1s" "time.Second" etc
+  rate = 1
+  duration = 1 ## must be int!!! no "1s" "time.Second" etc
   header {
-    auth = "Bearer" ## Auth type if it's needed. Now only (uppercase!) "Bearer" is availiable
+    auth = "" ## Auth type if it's needed. Now only (uppercase!) "Bearer" is availiable
     bear = "" ## bearer token
   }
 }
 
+requests "eth_getBlockByHash" {
+  request {
+    jsonrpc = "2.0"
+    method  = "net_version"
+    params  = []
+    id      = "1"
+  }
+}
 requests "eth_getBlockByNumber"{
-  ## example of "eth_gasPrice" request
+  ## example of "eth_blockNumber" request
   request  {
     jsonrpc = "2.0"
-    method = "eth_getBlockByNumber"
-    params = ["latest", "true"]
+    method = "eth_gasPrice"
+    params = []
     id = "0x1234"
-    hard_coded = true ## must be true ONLY for eth_getBlockByNumber !
   }
 }

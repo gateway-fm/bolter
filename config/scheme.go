@@ -7,7 +7,6 @@ type BolterCfg struct {
 }
 
 type Logger struct {
-	LogEnabled bool   `hcl:"log_enabled"`
 	LoggerType int    `hcl:"logger_type"`
 	FileName   string `hcl:"file_name"`
 }
@@ -21,7 +20,6 @@ type Request struct {
 	Method     string   `hcl:"method"`
 	Parameters []string `hcl:"params"`
 	Id         string   `hcl:"id"`
-	HardCoded  bool     `hcl:"hard_coded"`
 }
 type Vegeta struct {
 	Url      string  `hcl:"url"`

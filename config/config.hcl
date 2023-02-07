@@ -5,7 +5,6 @@ logger{
   ## 2: logging using Zap logger
 
   logger_type = 0
-  log_enabled = true #set false if you don't need any outputs
   file_name = "serega.txt"
 }
 vegeta {

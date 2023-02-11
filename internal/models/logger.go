@@ -2,8 +2,8 @@ package models
 
 import (
 	"fmt"
-	lr "github.com/Misnaged/annales/logger"
 	zaplog "github.com/gateway-fm/scriptorium/logger"
+	lr "github.com/misnaged/annales/logger"
 	"log"
 	"os"
 )

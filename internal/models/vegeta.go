@@ -1,8 +1,9 @@
 package models
 
 import (
-	vegeta "github.com/tsenart/vegeta/v12/lib"
 	"time"
+
+	vegeta "github.com/tsenart/vegeta/v12/lib"
 )
 
 type Vegeta struct {

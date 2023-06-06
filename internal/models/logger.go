@@ -2,10 +2,12 @@ package models
 
 import (
 	"fmt"
-	zaplog "github.com/gateway-fm/scriptorium/logger"
-	lr "github.com/misnaged/annales/logger"
 	"log"
 	"os"
+
+	lr "github.com/misnaged/annales/logger"
+
+	zaplog "github.com/gateway-fm/scriptorium/logger"
 )
 
 type Logger struct {

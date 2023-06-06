@@ -8,18 +8,15 @@ import (
 	"sync"
 	"time"
 
-	"go.uber.org/zap"
-
 	"github.com/goccy/go-json"
-
 	"github.com/hashicorp/hcl/v2/hclsimple"
-
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 
 	"github.com/gateway-fm/scriptorium/logger"
 
 	"bolter/config"
 	"bolter/internal/models"
+	"go.uber.org/zap"
 )
 
 type Bolter struct {
@@ -98,15 +95,23 @@ func (b *Bolter) initCfg() error {
 	}
 	return nil
 }
-
+func latestTrue() (string, bool) {
+	return "latest", true
+}
 func (b *Bolter) BuildRequests() []models.JsonBody {
 	confReqs := b.BolterCfg.Requests
 	b.Request = make([]models.JsonBody, len(confReqs))
+	l, t := latestTrue()
 	for i := range confReqs {
 		b.Request[i].Method = confReqs[i].Request.Method
 		b.Request[i].Id = confReqs[i].Request.Id
 		b.Request[i].Jsonrpc = confReqs[i].Request.Jsonrpc
-		b.Request[i].Params = confReqs[i].Request.Parameters
+		if len(confReqs[i].Request.Parameters) > 0 {
+			if confReqs[i].Request.Parameters[0] == "latest" && confReqs[i].Request.Parameters[1] == "true" {
+				b.Request[i].Params = append(b.Request[i].Params, l, t)
+
+			}
+		}
 	}
 	return b.Request
 }
